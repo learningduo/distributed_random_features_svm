@@ -54,14 +54,12 @@ For the difference between the two [read here](http://stackoverflow.com/question
 * getInstances should return a mat (matrix representation in armadillo) with your data's instances represented by the rows of the matrix, and features by columns. Same goes for getClassifications, but for the labels of your data.
 * Now, just replace the parsing in main() with your new parser class, for example:
 ```
-#!c++
 BaseParser *dataParser = new YourNewParser("data-path", "labels-path");
 ```
 * Notice that you can use your parser as you wish, accordingly to your data status. It can be 2 different path, as we did here - for the x and y separately, or as we originally tested on the Mnist dataset, and there you only need one path (as the labels are on the same folder).
 
 or, for a real example:
 ```
-#!c++
 BaseParser *dataParser = new TimitParser(config->xTrain, config->yTrain);
 ```
 
