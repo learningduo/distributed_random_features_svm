@@ -1,0 +1,28 @@
+cmake_minimum_required(VERSION 3.3)
+project(Svm)
+
+# --- ARMADILLO SECTION ---
+include_directories("/usr/local/include/armadillo_bits")
+set(ARMADILLO_INCLUDE_DIRS "/usr/local/include")
+set(ARMADILLO_LIBRARY_DIRS "/usr/local/lib")
+include("/usr/local/share/Armadillo/CMake/ArmadilloLibraryDepends.cmake")
+set(ARMADILLO_LIBRARIES armadillo)
+
+# --- OPEN MPI SECTION ---
+include_directories("/home/yoda/rf_svm/openmpi/include")
+link_directories("/home/yoda/rf_svm/openmpi/lib")
+find_package(MPI REQUIRED)
+set(CMAKE_CXX_COMPILE_FLAGS ${CMAKE_CXX_COMPILE_FLAGS} ${MPI_COMPILE_FLAGS})
+set(CMAKE_CXX_LINK_FLAGS ${CMAKE_CXX_LINK_FLAGS} ${MPI_LINK_FLAGS})
+include_directories(MPI_INCLUDE_PATH)
+
+# --- BLAS SECTION ---
+set(BLAS_FLAG "-O2 -I /home/yoda/sf_svm/open/OpenBLAS-0.2.18 -DARMA_DONT_USE_WRAPPER -DARMA_USE_BLAS -lopenblas -llapack")
+
+# --- GENERAL ---
+add_definitions(${BLAS_FLAG})
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -larmadillo -std=c++11")
+set(SOURCE_FILES src/main.cpp src/algo/Svm.cpp src/algo/Svm.h src/parsers/BaseParser.h src/parsers/BaseParser.cpp src/parsers/AdultParser.h src/parsers/AdultParser.cpp src/utils/Normalizer.h src/mpi/Client.h src/mpi/Server.h extern/INIReader.h extern/INIReader.cpp extern/ini.h extern/ini.c src/parsers/TimitParser.cpp src/parsers/TimitParser.h src/utils/Configuration.h extern/easylogging++.h src/utils/Consts.h)
+add_executable(Svm ${SOURCE_FILES})
+set_target_properties(Svm PROPERTIES LINKER_LANGUAGE CXX)
+target_link_libraries(Svm ${ARMADILLO_LIBRARIES} ${MPI_LIBRARIES})
