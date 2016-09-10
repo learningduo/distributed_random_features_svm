@@ -1,6 +1,16 @@
 \documentclass[12pt,a4paper]{article}
 \usepackage{graphicx}
+\usepackage{hyperref}
+\hypersetup{
+        colorlinks=true,
+        linkcolor=blue,
+        filecolor=magenta,
+        urlcolor=cyan,
+}
 \usepackage[margin=1in]{geometry}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+
 \begin{document}
 
 % TITLE PAGE
@@ -34,6 +44,27 @@ The goal of our project was identifying phonemes from the TIMIT dataset, that is
 \begin{equation}
 {w_r} = argmin_{w_r}\frac{1}{N}\sum_{i=1}^{N}max_{\widehat{y}}[\delta(\widehat{y} \neq y_i) - w^{y_i} \cdot x + w^{\widehat{y}} \cdot x]+\gamma ||\omega||^2
 \end{equation}
+
+The implementation of the SVM multi-class algorithm is done using stochastic-gradient-descent (a method of minimizing the loss function, specifically, in SGD we update the hypothesis after each instance of the training set):
+
+\begin{algorithm}
+        \caption{Multi-class SVM}
+        \label{mc_svm_alg}
+        \begin{algorithmic}[1]
+                \Procedure{Multi-class SVM}{}
+                \For{for t = 1...T}
+                \State choose $(x_i,y_i) \in S$ 
+                \State $y' = argmax_{y'\in \{1,..,k\}} [\delta(y' \ne y_i) + w^{y'}x_i]$
+                \If{[$\delta(y' \ne y_i) - w^{y_i}x_i + w^{y'}x_i] > 0$}
+                \State $w^{y_i} = w^{y_i} - \eta_t \nabla_{w^{y_i}} = w^{y_i}(1 - \eta_t \lambda) + x_i \eta_t$
+                \State $w^{y'} = w^{y'} - \eta_t \nabla_{w^{y_i}} = w^{y'}(1 - \eta_t \lambda) + x_i \eta_t$
+                \State $w^r = w^r - \eta_t \nabla_{w^r} = w^{r}(1 - \eta_t \lambda)$ for $ y \ne y_i,y'$
+                \EndIf
+                \EndFor
+                \EndProcedure
+        \end{algorithmic}
+\end{algorithm}
+
 And since it is easy to incorporate the use of kernel functions into it, Specifically an approximation of the RBF kernel as described in \cite{Rahimi07randomfeatures}. 
 The RBF (Radial Basis Function) kernel's feature space has an infinite amount of dimensions. This kernel is commonly used in SVM and is calculated by:
 \begin{equation}
@@ -58,16 +89,52 @@ z(x) = \sqrt{\frac{2}{D}}[cos(\omega_1 x + b_1) + \dots + cos(\omega_D x + b_D)]
 where $w$ are D iid samples from a normal distribution $\omega_1,\dots,\omega_D \in R^d$
 and $d$ are D iid samples from a uniform distribution $b_1,\dots,b_D \in R$ on $[0, 2\pi]$.
 
+\begin{algorithm}
+        \caption{Random Fourier Features}
+        \label{rff_alg}
+        \begin{algorithmic}[1]
+                \Procedure{Random Fourier Features}{}
+                \State Compute the Fourier transform $p$ of the kernel $k: p(w) = \frac{1}{2\pi} \int e^{-jw'\delta} k(\delta) d\Delta$
+                \State Draw $D$ iid samples $w_1,w_2,...,w_D \in R^d$ from $p$ and $D$ iid samples $b_1,b_2,...b_D \in R$ from the uniform distribution on $[0,2\pi]$
+                \State $Let z(x) = \sqrt{\frac{2}{D}}[cos(\omega_1 x + b_1) + \dots + cos(\omega_D x + b_D)]'$
+                \EndProcedure
+        \end{algorithmic}
+\end{algorithm}
+
+
 
 \subsection{Distributed Gradients}
 To further speed up the learning process we have implemented it in a distributed manner. The initial dataset is first divided into chunks, and spread across numerous worker machines. Each machine runs the kernel-based SVM algorithm using gradient descent. Finally, after the batch is finished, the weight vector learned $\omega$ is passed to a central parameter server, which aggregates the vectors for all worker machines. The aggregation is done by:
 \begin{equation}
-\omega = \frac{1}{N}\omega_i
+        \omega = \frac{1}{N}\sum^{k}_{i=1}\omega_i
 \end{equation}
+
+\begin{center}
+        \makebox[\textwidth]{\includegraphics[width=0.6\paperwidth]{flow.png}}
+\end{center}
+
+\begin{algorithm}
+        \caption{Distributed Stochastic Gradient Descent}
+        \label{dsgd_alg}
+        \begin{algorithmic}[1]
+                \Procedure{Worker}{}
+                \State load a part of the training set
+                \State pull random features parameters from server
+                \State run Multi-class SVM with SGD and get $w$ hypothesis
+                \State send $w$ to server
+                \EndProcedure
+                \Procedure{Server}{}
+                \State randomize parameters for Random Fourier Features
+                \State send parameters to workers
+                \State get $w_i$ from each $i$ worker
+                \State calculate $\omega = \frac{1}{N}\sum^{k}_{i=1}\omega_i$
+                \EndProcedure
+        \end{algorithmic}
+\end{algorithm}
 
 % IMPLEMENTATION DETAILS
 \section{Implementation Details}
-Please read our GitHub documentation - it contains all classes descriptions along with running instructions and environment configuration.
+Please read our \href{https://github.com/learningduo/distributed_random_features_svm}{GitHub documentation} - it contains all classes descriptions along with running instructions and environment configuration.
 
 % EXPERIMENTS
 \section{Experiments}
