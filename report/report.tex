@@ -3,7 +3,7 @@
 \usepackage{hyperref}
 \hypersetup{
         colorlinks=true,
-        linkcolor=blue,
+        linkcolor=black,
         filecolor=magenta,
         urlcolor=cyan,
 }
@@ -30,6 +30,9 @@
 	\vspace{5cm}
 {\large \today}
 \end{titlepage}
+
+\tableofcontents
+\newpage
 
 % OVERVIEW
 \section{Overview}
@@ -138,11 +141,10 @@ Please read our \href{https://github.com/learningduo/distributed_random_features
 
 % EXPERIMENTS
 \section{Experiments}
-\subsection{Performance vs. Number of clients}
-TODO
-
-\subsection{Accuracy vs. Number of clients}
-TODO
+\begin{center}
+        \makebox[\textwidth]{\includegraphics[width=0.5\paperwidth]{worker_accuracy.png}}
+\end{center}
+As seen in the chart above, there was a slight spike in accuracy (from 80\% to 83\%) when increasing amount of workers from 1 to 2. In terms of time we have seen a decrease when increasing amount of workers from 2 to 4 as time we nearly cut in half. When using 16 workers time slightly increased due to, what we believe, is overhead of managing multiple workers. The above chart was generated on the Adult dataset.
 
 % PROBLEMS & SOLUTIONS
 \section{Problems \& Solutions}
@@ -173,7 +175,7 @@ Armadillo and open-mpi both use different types, armadillo uses $mat$ type, whil
 \begin{itemize}
 \item This project required the installation of several packages: armadillo, open-mpi, easy-logging, htk infrastructure, etc. All of the above required considerable time to setup, run and learn. Some of which had to be edited for our needs.
 \item Finding a solid IDE was a hassle, we started out with eclipse only to find that configuring it to work was a real pain. Later we have switched to CLion, which was a big improvement interface-wise and managed to link our external libraries well, but had its own faults, as many these libraries were badly recognised by CLion's syntax colouring engine.
-\item Working on the same project on the same repository, often on different computers. We used Git as our VCS environment. Like anything else, it required a learning curve, which we learned a lot from it. from local commit, 'push' to the repository and merging code whenever there is a conflict, which we had, quite a lot. Insert photo of branches TODO
+\item Working on the same project on the same repository, often on different computers. We used Git as our VCS environment. Like anything else, it required a learning curve, which we learned a lot from it. from local commit, 'push' to the repository and merging code whenever there is a conflict, which we had, quite a lot. 
 \item Relative low language to work on - C++. As this is relatively a low level language, and quit an old one, everything is hard. There are not a lot of built in utilities, the debugging tools are very advanced and more... Therefor, all the coding process takes much more time than high level languages. On the other hand, as it is much closer to the computer core, we handle all it's memory, so the running time is faster.
 \end{itemize}
 
